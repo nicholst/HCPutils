@@ -82,14 +82,16 @@ for (moth in levels(factor(dat$Mother_ID))) {
     DZ = DZ + Ifam%*%t(Ifam)
   }
   if (length(Fams)>1) {
-    for (i1 in 1:(length(Fams)-1)) {
+    for (i1 in 1:length(Fams)) {
       fam1=Fams[i1]
       Blend=c(Blend,which(dat$FamID==fam1))
-      for (i2 in (i1+1):length(Fams)) {
-        fam2 = Fams[i2]
-        Ifam1 = dat$FamID==fam1
-        Ifam2 = dat$FamID==fam2
-        HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
+      if (i1<length(Fams)) {
+        for (i2 in (i1+1):length(Fams)) {
+          fam2 = Fams[i2]
+          Ifam1 = dat$FamID==fam1
+          Ifam2 = dat$FamID==fam2
+          HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
+        }
       }
     }
   }
@@ -101,21 +103,23 @@ for (fath in DupFath) {
   cat(".")
   Ifath = (dat$Father_ID==fath)
   Fams=unique(as.character(dat$FamID[Ifath]))
-  for (i1 in 1:(length(Fams)-1)) {
+  for (i1 in 1:length(Fams)) {
     fam1=Fams[i1]
     Blend=c(Blend,which(dat$FamID==fam1))
-    for (i2 in (i1+1):length(Fams)) {
-      fam2=Fams[i2]
-      Ifam1 = dat$FamID==fam1
-      Ifam2 = dat$FamID==fam2
-      HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
+    if (i1<length(Fams)) {
+      for (i2 in (i1+1):length(Fams)) {
+        fam2=Fams[i2]
+        Ifam1 = dat$FamID==fam1
+        Ifam2 = dat$FamID==fam2
+        HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
+      }
     }
   }
 }
 cat("\n")
 
 if (length(Blend)>0) {
-  cat("WARNING: Blended families:\n")
+  cat("WARNING: Blended families\n")
   print(cbind(dat[Blend,c("Subject","Mother_ID","Father_ID")],Zygosity=Zyg[Blend]))
   cat("\n")
 }
