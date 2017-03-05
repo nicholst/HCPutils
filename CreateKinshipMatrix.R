@@ -3,8 +3,8 @@
 # Script:   CreateKinshipMatrix.R
 # Purpose:  Convert table of family identies twin status into a "kinship" matrix
 # Author:   Thomas Nichols
-# Version: http://github.com/nicholst/HCPutils/tree/$Format:%h$
-#          $Format:%ci$
+# Version:  http://github.com/nicholst/HCPutils/tree/$Format:%h$
+#           $Format:%ci$
 #
 Usage='
  Usage:   CreateKinshipMatrix.R In.csv Out.csv
@@ -24,7 +24,8 @@ Usage='
     0     Unrelated
     1     MZ twins
     2     DZ twins
-    3     Siblings
+    3     Full siblings (FS)
+    4     Half siblings (HS)
 
  NOTE:  Assumes there is no more than one twin pair per family.
 '
@@ -44,7 +45,7 @@ nSubj=dim(dat)[1]
 dat$FamID=factor(paste(dat$Mother_ID,dat$Father_ID))
 
 
-MZ=DZ=Sib=matrix(0,ncol=nSubj,nrow=nSubj)
+MZ=DZ=FS=HS=matrix(0,ncol=nSubj,nrow=nSubj)
 
 Zyg=as.character(dat$ZygosityGT)
 
@@ -52,26 +53,52 @@ Zyg=as.character(dat$ZygosityGT)
 BadZ=!(Zyg=="MZ" | Zyg=="DZ")
 Zyg[BadZ]=as.character(dat$ZygositySR[BadZ])
 
-for (fam in levels(dat$FamID)) {
 
-  # Any family relationship
-  Ifam = (dat$FamID==fam)
-  Sib = Sib + Ifam%*%t(Ifam)
+# First loop through mothers
+AllFath=c()
+for (moth in levels(dat$Mother_ID)) {
+  Imoth = (dat$Mother_ID==moth)
+  Fams=c()
+  for (fath in unique(as.character(dat$Father_ID[Imoth]))) {
+    fam=paste(moth,fath)
+    Fams=c(Fams,fam)
+    AllFath=c(AllFath,fath)
 
-  # MZ relationship
-  Ifam = (dat$FamID==fam) & (Zyg == "MZ")
-  MZ = MZ + Ifam%*%t(Ifam)
+    Ifam=dat$FamID==fam
 
-  # DZ relationship
-  Ifam = (dat$FamID==fam) & ( (Zyg == "DZ")|(Zyg == "NotMZ") )
-  DZ = DZ + Ifam%*%t(Ifam)
+    # Any family relationship
+    Ifam = (dat$FamID==fam)
+    FS = FS + Ifam%*%t(Ifam)
 
+    # MZ relationship
+    Ifam = (dat$FamID==fam) & (Zyg == "MZ")
+    MZ = MZ + Ifam%*%t(Ifam)
+
+    # DZ relationship
+    Ifam = (dat$FamID==fam) & ( (Zyg == "DZ")|(Zyg == "NotMZ") )
+    DZ = DZ + Ifam%*%t(Ifam)
+  }
+  if length(Fams>1) {
+    for (fam1 in Fams) {
+      for (fam2 in Fams[2:length(Fams)]) {
+        Ifam1 = dat$FamID==fam1
+        Ifam2 = dat$FamID==fam2
+        HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
+      }
+    }
+  }
+}
+DupFath=duplicated(AllFath)
+if any(DupFath) {
+  cat("WARNING: Following fathers occur in 2 or more HCP families")
+  cat(AllFath[DupFath]))
 }
 
-# Do some nonintuitive arithmatic to get final matrix
-Adj=Sib*3-MZ*2-DZ
-Adj=Adj-diag(diag(Adj))-1*diag(nSubj)
 
+# Do some nonintuitive arithmatic to get final matrix
+Adj=FS*3-MZ*2-DZ
+Adj=Adj-diag(diag(Adj))-1*diag(nSubj)
+Adj=Adj+4*HS
 # Add column names
 colnames(Adj)<-as.character(dat$"Subject")
 rownames(Adj)<-as.character(dat$"Subject")
