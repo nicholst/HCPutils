@@ -53,10 +53,11 @@ BadZ=!(Zyg=="MZ" | Zyg=="DZ")
 Zyg[BadZ]=as.character(dat$ZygositySR[BadZ])
 
 old=0
-# First loop through mothers
+cat("Processing mothers ")
 AllFath=c()
 Blend=c()
 for (moth in levels(factor(dat$Mother_ID))) {
+  cat(".")
   Imoth = (dat$Mother_ID==moth)
   Faths=c()
   Fams=c()
@@ -81,7 +82,7 @@ for (moth in levels(factor(dat$Mother_ID))) {
     DZ = DZ + Ifam%*%t(Ifam)
   }
   if (length(Fams)>1) {
-    for (i1 in 1:length(Fams)) {
+    for (i1 in 1:(length(Fams)-1)) {
       fam1=Fams[i1]
       Blend=c(Blend,which(dat$FamID==fam1))
       for (i2 in (i1+1):length(Fams)) {
@@ -92,37 +93,33 @@ for (moth in levels(factor(dat$Mother_ID))) {
       }
     }
   }
-  if (is.na(HS[90,90]) || HS[90,90]>old) {
-    browser()
-    old=HS[90,90]
-  }
-
 }
-# Now catch fathers that appear in 2 or more families
+cat("\nProcessing additional fathers ")
+# Now do fathers that appear in 2 or more families not already caught above
 DupFath=AllFath[duplicated(AllFath)]
-if (length(DupFath)>0) {
-  for (fath in DupFath) {
-    Ifath = (dat$Father_ID==fath)
-    Fams=unique(as.character(dat$FamID[Ifath]))
-    for (i1 in 1:length(Fams)) {
-      fam1=Fams[i1]
-      Blend=c(Blend,which(dat$FamID==fam1))
-      for (i2 in (i1+1):length(Fams)) {
-        fam2=Fams[i2]
-        Ifam1 = dat$FamID==fam1
-        Ifam2 = dat$FamID==fam2
-        HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
-      }
+for (fath in DupFath) {
+  cat(".")
+  Ifath = (dat$Father_ID==fath)
+  Fams=unique(as.character(dat$FamID[Ifath]))
+  for (i1 in 1:(length(Fams)-1)) {
+    fam1=Fams[i1]
+    Blend=c(Blend,which(dat$FamID==fam1))
+    for (i2 in (i1+1):length(Fams)) {
+      fam2=Fams[i2]
+      Ifam1 = dat$FamID==fam1
+      Ifam2 = dat$FamID==fam2
+      HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
     }
   }
 }
+cat("\n")
 
-if length(Blend)>0 {
+if (length(Blend)>0) {
   cat("WARNING: Blended families:\n")
   print(cbind(dat[Blend,c("Subject","Mother_ID","Father_ID")],Zygosity=Zyg[Blend]))
   cat("\n")
 }
-browser()
+
 # Do some nonintuitive arithmatic to get final matrix
 Adj=FS*3-MZ*2-DZ
 Adj=Adj-diag(diag(Adj))-1*diag(nSubj)
