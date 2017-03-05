@@ -10,8 +10,10 @@ Usage='
 
  In.csv must be a plain CSV file, with the first row containing the
  variable names and then one row per subject (no blank rows).
- The following variable names must be in the file: "Subject", 
- "Mother ID", "Father ID", and "Zygosity".  
+ The following variable names must be in the file: "Subject",
+ "Mother_ID", "Father_ID", "ZygositySR" and, "ZygosityGT".  
+ Zygosity is draw from ZygosityGT preferentially, and then as backup
+ from ZygositySR.
 
  Out.csv will be a nSubject by nSubject matrix, with row and column
  names set by the variable "Subject".  The possible values indicate
@@ -38,10 +40,16 @@ dat=read.csv(InFn)
 nSubj=dim(dat)[1]
 
 # Make unique identifier for each family
-dat$FamID=factor(paste(dat$Mother.ID,dat$Father.ID))
+dat$FamID=factor(paste(dat$Mother_ID,dat$Father_ID))
 
 
 MZ=DZ=Sib=matrix(0,ncol=nSubj,nrow=nSubj)
+
+Zyg=as.character(dat$ZygosityGT)
+
+# Fill in missing ZygosityGT values from ZygositySR
+BadZ=!(Zyg=="MZ" | Zyg=="DZ")
+Zyg[BadZ]=as.character(dat$ZygositySR[BadZ])
 
 for (fam in levels(dat$FamID)) {
 
@@ -50,15 +58,15 @@ for (fam in levels(dat$FamID)) {
   Sib = Sib + Ifam%*%t(Ifam)
 
   # MZ relationship
-  Ifam = (dat$FamID==fam) & (dat$Zygosity == "MZ")
+  Ifam = (dat$FamID==fam) & (Zyg == "MZ")
   MZ = MZ + Ifam%*%t(Ifam)
 
   # DZ relationship
-  Ifam = (dat$FamID==fam) & (dat$Zygosity == "NotMZ")
+  Ifam = (dat$FamID==fam) & ( (Zyg == "DZ")|(Zyg == "NotMZ") )
   DZ = DZ + Ifam%*%t(Ifam)
 
 }
-  
+
 # Do some nonintuitive arithmatic to get final matrix
 Adj=Sib*3-MZ*2-DZ
 Adj=Adj-diag(diag(Adj))-1*diag(nSubj)
