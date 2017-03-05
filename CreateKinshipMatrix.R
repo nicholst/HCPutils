@@ -3,7 +3,8 @@
 # Script:   CreateKinshipMatrix.R
 # Purpose:  Convert table of family identies twin status into a "kinship" matrix
 # Author:   Thomas Nichols
-# Version: $Id$
+# Version: http://github.com/nicholst/HCPutils/tree/$Format:%h$
+#          $Format:%ci$
 #
 Usage='
  Usage:   CreateKinshipMatrix.R In.csv Out.csv
