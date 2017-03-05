@@ -44,7 +44,6 @@ nSubj=dim(dat)[1]
 # Make unique identifier for each family
 dat$FamID=factor(paste(dat$Mother_ID,dat$Father_ID))
 
-
 MZ=DZ=FS=HS=matrix(0,ncol=nSubj,nrow=nSubj)
 
 Zyg=as.character(dat$ZygosityGT)
@@ -53,15 +52,18 @@ Zyg=as.character(dat$ZygosityGT)
 BadZ=!(Zyg=="MZ" | Zyg=="DZ")
 Zyg[BadZ]=as.character(dat$ZygositySR[BadZ])
 
-
+old=0
 # First loop through mothers
 AllFath=c()
-for (moth in levels(dat$Mother_ID)) {
+Blend=c()
+for (moth in levels(factor(dat$Mother_ID))) {
   Imoth = (dat$Mother_ID==moth)
+  Faths=c()
   Fams=c()
   for (fath in unique(as.character(dat$Father_ID[Imoth]))) {
     fam=paste(moth,fath)
     Fams=c(Fams,fam)
+    Faths=c(Faths,fath)
     AllFath=c(AllFath,fath)
 
     Ifam=dat$FamID==fam
@@ -78,9 +80,35 @@ for (moth in levels(dat$Mother_ID)) {
     Ifam = (dat$FamID==fam) & ( (Zyg == "DZ")|(Zyg == "NotMZ") )
     DZ = DZ + Ifam%*%t(Ifam)
   }
-  if length(Fams>1) {
-    for (fam1 in Fams) {
-      for (fam2 in Fams[2:length(Fams)]) {
+  if (length(Fams)>1) {
+    for (i1 in 1:length(Fams)) {
+      fam1=Fams[i1]
+      Blend=c(Blend,which(dat$FamID==fam1))
+      for (i2 in (i1+1):length(Fams)) {
+        fam2 = Fams[i2]
+        Ifam1 = dat$FamID==fam1
+        Ifam2 = dat$FamID==fam2
+        HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
+      }
+    }
+  }
+  if (is.na(HS[90,90]) || HS[90,90]>old) {
+    browser()
+    old=HS[90,90]
+  }
+
+}
+# Now catch fathers that appear in 2 or more families
+DupFath=AllFath[duplicated(AllFath)]
+if (length(DupFath)>0) {
+  for (fath in DupFath) {
+    Ifath = (dat$Father_ID==fath)
+    Fams=unique(as.character(dat$FamID[Ifath]))
+    for (i1 in 1:length(Fams)) {
+      fam1=Fams[i1]
+      Blend=c(Blend,which(dat$FamID==fam1))
+      for (i2 in (i1+1):length(Fams)) {
+        fam2=Fams[i2]
         Ifam1 = dat$FamID==fam1
         Ifam2 = dat$FamID==fam2
         HS = HS + Ifam1%*%t(Ifam2) + Ifam2%*%t(Ifam1)
@@ -88,13 +116,13 @@ for (moth in levels(dat$Mother_ID)) {
     }
   }
 }
-DupFath=duplicated(AllFath)
-if any(DupFath) {
-  cat("WARNING: Following fathers occur in 2 or more HCP families")
-  cat(AllFath[DupFath]))
+
+if length(Blend)>0 {
+  cat("WARNING: Blended families:\n")
+  print(cbind(dat[Blend,c("Subject","Mother_ID","Father_ID")],Zygosity=Zyg[Blend]))
+  cat("\n")
 }
-
-
+browser()
 # Do some nonintuitive arithmatic to get final matrix
 Adj=FS*3-MZ*2-DZ
 Adj=Adj-diag(diag(Adj))-1*diag(nSubj)
