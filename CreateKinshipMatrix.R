@@ -148,11 +148,9 @@ for (fath in DupFath) {
     ExtFam=sort(unique(c(dat$Mother_ID[Ioff],dat$Father_ID[Ioff])))
   }
   # Apply this new extended family ID to all subjects in the extended family
-  if (length(OrigExtFam)<length(ExtFam)) {
-    Ioff = dat$Mother_ID%in%ExtFam | dat$Father_ID%in%ExtFam
-    for (i in which(Ioff))
-      ExtFamID[[i]]=ExtFam
-  }
+  Ioff = dat$Mother_ID%in%ExtFam | dat$Father_ID%in%ExtFam
+  for (i in which(Ioff))
+    ExtFamID[[i]]=ExtFam
 }
 cat("\n")
 
