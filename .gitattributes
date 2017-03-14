@@ -5,3 +5,5 @@
 *.h ident export-subst
 *.py ident export-subst
 *.R ident export-subst
+.gitignore export-ignore
+.gitattributes export-ignore
