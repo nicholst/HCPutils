@@ -37,6 +37,30 @@ Usage='
  NOTE:  Assumes there is no more than one twin pair per family.
 '
 
+## Algorithm:
+##
+##    For the HCP, a "family" is a set of individuals for which each pair of
+##    individuals has some relationship, either DZ, MZ, FS or HS; we also
+##    require that no relationships exist between familes.  
+##
+##    Families can be identified by a two-step process. 
+##
+##    1. Identify all mothers.
+##       For each mother: 
+##       a. Define all children of a mother tentatively to be "a family",
+##          with a given 'family id' 
+##       b. Create a 'family id' from the list comprised of the mother ID
+##          and all fathers of her children. 
+##       c. Create a running list of fathers seen (equivalently, note how
+##          many families each father is a part of) 
+##
+##    2. Process fathers appearing in 1 or more families.
+##       For each such father:
+##       a. Find the family id's of that father, and create a new family
+##          id for all the children having that family ID; 
+##       b. The family ID is the union of of all mother and father ID's
+##          in the collection of family ids. 
+
 args = commandArgs(TRUE)
 
 if (length(args)<2 || length(args)>3)
