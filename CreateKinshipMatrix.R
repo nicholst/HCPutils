@@ -9,16 +9,14 @@
 Usage='
  Usage:   CreateKinshipMatrix.R In.csv Out.csv [FamIDs.csv]
 
- In.csv must be a plain CSV file, with the first row containing the
- variable names and then one row per subject (no blank rows).
- The following variable names must be in the file: "Subject",
+ In.csv is plain CSV file, with the first row containing the
+ variable names, having at least the variable names: "Subject",
  "Mother_ID", "Father_ID", "ZygositySR" and, "ZygosityGT".  
- Zygosity is draw from ZygosityGT preferentially, and then as backup
+ Zygosity is drawn from ZygosityGT preferentially, and then as backup
  from ZygositySR.
 
  Out.csv will be a nSubject by nSubject matrix, with row and column
- names set by the variable "Subject".  The possible values indicate
- the possible type of relationships:
+ names set by the variable "Subject", with values:
 
    -1     Self
     0     Unrelated
@@ -29,10 +27,9 @@ Usage='
 
  If FamIDs.csv is specified, a table with two versions of a family ID
  will be saved. "FamID" is the variable formed by the appending of
- Mother_ID and Father_ID for each subject.  "ExtFamID" is an
- identifier for an extended family, and gives a unique marker for each
- set of related individuals, defined by the (sorted) list of all
- mothers and fathers of the set of related subjects.
+ Mother_ID and Father_ID for each subject.  "ExtFamID" is an identifier
+ for an extended family, defines extended/blended family by a sorted 
+ list all parents.
 
  NOTE:  Assumes there is no more than one twin pair per family.
 '
@@ -77,7 +74,7 @@ dat=read.csv(InFn)
 nSubj=dim(dat)[1]
 
 # Make unique identifier for each family
-dat$FamID=factor(paste(dat$Mother_ID,dat$Father_ID))
+dat$FamID=factor(paste(dat$Mother_ID,dat$Father_ID,sep="_"))
 
 MZ=DZ=FS=HS=matrix(0,ncol=nSubj,nrow=nSubj)
 ExtFamID=vector("list",nSubj)
@@ -99,7 +96,7 @@ for (moth in levels(factor(dat$Mother_ID))) {
   Faths=c()
   Fams=c()
   for (fath in unique(as.character(dat$Father_ID[Imoth]))) {
-    fam=paste(moth,fath)
+    fam=paste(moth,fath,sep="_")
     Fams=c(Fams,fam)
     Faths=c(Faths,fath)
     AllFath=c(AllFath,fath)
@@ -194,7 +191,7 @@ if (!is.null(FamFn)) {
   tmp=character(nSubj)
   for (eid in unique(ExtFamID)) {
     cat(".")
-    tmp[ExtFamID%in%list(eid)] = paste(eid,collapse=" ")
+    tmp[ExtFamID%in%list(eid)] = paste(eid,collapse="_")
   }
   dat$ExtFamID=factor(tmp)
   cat("\n")
