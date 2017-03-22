@@ -28,8 +28,8 @@ Usage='
  If FamIDs.csv is specified, a table with two versions of a family ID
  will be saved. "FamID" is the variable formed by the appending of
  Mother_ID and Father_ID for each subject.  "ExtFamID" is an identifier
- for an extended family, defines extended/blended family by a sorted 
- list all parents.
+ for an extended family, consisting of sorted IDs of all parents of 
+ children in the extended family.
 
  NOTE:  Assumes there is no more than one twin pair per family.
 '
