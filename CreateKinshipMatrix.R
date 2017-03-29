@@ -44,19 +44,23 @@ Usage='
 ##
 ##    1. Identify all mothers.
 ##       For each mother: 
-##       a. Define all children of a mother tentatively to be "a family",
-##          with a given 'family id' 
-##       b. Create a 'family id' from the list comprised of the mother ID
+##       a. Define all children of a mother tentatively to be "a family".
+##       b. Create a family ID from the list comprised of this mother 
 ##          and all fathers of her children. 
-##       c. Create a running list of fathers seen (equivalently, note how
-##          many families each father is a part of) 
+##       c. For each father, increment the "FamiliesFathered" variable,
+##          to keep track of how many families each father is a part of.
 ##
-##    2. Process fathers appearing in 1 or more families.
+##    2. Process fathers appearing in 2 or more families (fathers 
+##       appearing in exactly 1 family cannot create extended families)
 ##       For each such father:
-##       a. Find the family id's of that father, and create a new family
-##          id for all the children having that family ID; 
-##       b. The family ID is the union of of all mother and father ID's
-##          in the collection of family ids. 
+##       a. Find all children sired by this father.
+##       b. Iteratively search for more parents: Find all parents of 
+##          these children, then find all children of those parents, 
+##          then find all parents of those children, etc; repeat until 
+##          the list of parents stops growing.
+##       b. Create a new single family ID consisting of the union of 
+##          all mother and father found, and finally assign to all 
+##          children found.
 
 args = commandArgs(TRUE)
 
