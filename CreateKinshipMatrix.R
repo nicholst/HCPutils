@@ -38,7 +38,7 @@ Usage='
 ##
 ##    For the HCP, a "family" is a set of individuals for which each pair of
 ##    individuals has some relationship, either DZ, MZ, FS or HS; we also
-##    require that no relationships exist between familes.  
+##    require that no relationships exist between families.  
 ##
 ##    Families can be identified by a two-step process. 
 ##
